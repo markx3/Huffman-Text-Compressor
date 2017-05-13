@@ -1,7 +1,9 @@
-# Huffman-Text-Compressor
-Compile huffman.hs using `ghc -O2 huffman.hs`.
+# Huffman Text Compressor
+Compile huffman.hs using `ghc -O2 huff.hs`.
 
-To compress text files: `./huffman c 'infile' 'outfile'`
+To compress text files: `./huff c 'infile' 'outfile'`
 
-To decompress binary files: `./huffman d 'infile' 'outfile'`
+To decompress binary files: `./huff d 'infile' 'outfile'`
+
+Use `-h` param for more options.
 
