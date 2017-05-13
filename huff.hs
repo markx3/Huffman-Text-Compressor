@@ -180,29 +180,29 @@ encode :: FilePath -> FilePath -> IO()
 encode inname outname  = 
     do
         txt <- readFile inname
-        let f             = freqf txt                                         -- pares (c, f)
-        let n             = P.runPut $ P.putWord8 (toEnum . length $ f)         -- numero de caracteres
-        let huffm         = constructH $ getHuffFromFile $ f                     -- Árvore
-        let code         = codificar txt huffm                                -- codigo bin
-        let t             = P.runPut $ P.putWord32be (toEnum . length $ code) -- n. chars cod
-        let cbook         = P.runPut (put f)                                     -- codebook
-        let wordlist     = codeToDecWord8 $ code                             -- vetor de ints a partir do codigo
-        let bincode     = P.runPut (putCode    $ wordlist)                     -- codigo p/ int
+        let f        = freqf txt                                         -- pares (c, f)
+        let n        = P.runPut $ P.putWord8 (toEnum . length $ f)       -- numero de caracteres
+        let huffm    = constructH $ getHuffFromFile $ f                  -- Árvore
+        let code     = codificar txt huffm                               -- codigo bin
+        let t        = P.runPut $ P.putWord32be (toEnum . length $ code) -- n. chars cod
+        let cbook    = P.runPut (put f)                                  -- codebook
+        let wordlist = codeToDecWord8 $ code                             -- vetor de ints a partir do codigo
+        let bincode  = P.runPut (putCode $ wordlist)                     -- codigo p/ int
 
         L.writeFile outname (L.concat ([n,t,cbook,bincode]))
 
 encodeDebug :: FilePath -> FilePath -> IO()
 encodeDebug inname outname  = 
     do
-        txt <- readFile inname
-        let f             = freqf txt                                         -- pares (c, f)
-        let n             = P.runPut $ P.putWord8 (toEnum . length $ f)         -- numero de caracteres
-        let huffm         = constructH $ getHuffFromFile $ f                     -- árvore
-        let code         = codificar txt huffm                                -- codigo bin
-        let t             = P.runPut $ P.putWord32be (toEnum . length $ code) -- n. chars cod
-        let cbook         = P.runPut (put f)     
-        let wordlist     = codeToDecWord8 $ code
-        let bincode     = P.runPut (putCode    $ wordlist)                     -- codigo p/ int
+        txt          <- readFile inname
+        let f        = freqf txt                                         -- pares (c, f)
+        let n        = P.runPut $ P.putWord8 (toEnum . length $ f)       -- numero de caracteres
+        let huffm    = constructH $ getHuffFromFile $ f                  -- árvore
+        let code     = codificar txt huffm                               -- codigo bin
+        let t        = P.runPut $ P.putWord32be (toEnum . length $ code) -- n. chars cod
+        let cbook    = P.runPut (put f)     
+        let wordlist = codeToDecWord8 $ code
+        let bincode  = P.runPut (putCode $ wordlist)                     -- codigo p/ int
         
         putStrLn (show f ++ "\n")
         putStrLn (show huffm ++ "\n")
@@ -212,26 +212,26 @@ encodeDebug inname outname  =
 decode :: FilePath -> FilePath -> IO()
 decode inname outname = 
     do
-        file             <- L.readFile inname
-        let ret         = G.runGet getMain file         -- Tupla de vetores contendo codebook e vetor de Ints
-        let cbook         = getFirstListFromTuple ret     -- Pega codebook
-        let wordlist     = getSecondListFromTuple ret     -- Pega vetor de Ints (código a ser decodiicado)
-        let bincode     = dec2binWord8Full wordlist     -- Transforma vetor de Ints em String, com o código em binário
-        let folhas         = getHuffFromFile cbook         -- Cria folhas a partir do codebook
-        let huffm         = constructH folhas             -- Cria arvore a partir das folhas
+        file         <- L.readFile inname
+        let ret      = G.runGet getMain file              -- Tupla de vetores contendo codebook e vetor de Ints
+        let cbook    = getFirstListFromTuple ret          -- Pega codebook
+        let wordlist = getSecondListFromTuple ret         -- Pega vetor de Ints (código a ser decodiicado)
+        let bincode  = dec2binWord8Full wordlist          -- Transforma vetor de Ints em String, com o código em binário
+        let folhas   = getHuffFromFile cbook              -- Cria folhas a partir do codebook
+        let huffm    = constructH folhas                  -- Cria arvore a partir das folhas
 
         writeFile outname (decodificar bincode huffm)     -- Decodifica código utilizando árvore e escreve no arquivo
 
 decodeDebug :: FilePath -> FilePath -> IO()
 decodeDebug inname outname = 
     do
-        file             <- L.readFile inname
-        let ret         = G.runGet getMain file
-        let cbook         = getFirstListFromTuple ret
-        let wordlist     = getSecondListFromTuple ret
-        let bincode     = dec2binWord8Full wordlist
-        let folhas         = getHuffFromFile cbook
-        let huffm         = constructH folhas
+        file         <- L.readFile inname
+        let ret      = G.runGet getMain file
+        let cbook    = getFirstListFromTuple ret
+        let wordlist = getSecondListFromTuple ret
+        let bincode  = dec2binWord8Full wordlist
+        let folhas   = getHuffFromFile cbook
+        let huffm    = constructH folhas
 
         putStrLn (show cbook ++ "\n")
         putStrLn (show huffm ++ "\n")
@@ -242,18 +242,18 @@ main :: IO()
 main = do
     args <- getArgs
     case args of
-        ["c", a, b] -> encode a b
+        ["c", a, b]  -> encode a b
         ["cv", a, b] -> encodeDebug a b
         ["vc", a, b] -> encodeDebug a b
-        ["d", a, b] -> decode a b
+        ["d", a, b]  -> decode a b
         ["vd", a, b] -> decodeDebug a b
         ["dv", a, b] -> decodeDebug a b
         ["-h"] -> do
             putStrLn "Usage: ./huff [c|v|d] 'input' 'output'"
             putStrLn "Examples:\n\t./huff c 'input' 'output' --> compress file\n\t./huff d 'input' 'output' --> decompress file"
             putStrLn "Use 'v' argument for verbose. (as in ./huff cv ...)"
-        ["-v"] -> putStrLn "Huffman Text File compressor/decompressor. Version 1.0\n(c) Marcos Felipe Eipper / 2017 ~ @markx3"
-        ["--demo"] -> do 
+        ["-v"]       -> putStrLn "Huffman Text File compressor/decompressor. Version 1.0\n(c) Marcos Felipe Eipper / 2017 ~ @markx3"
+        ["--demo"]   -> do 
             { encodeDebug "huff.hs" "compressed.bin";
              decodeDebug "compressed.bin" "decompressed.hs" }
 
