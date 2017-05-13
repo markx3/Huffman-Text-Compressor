@@ -179,7 +179,7 @@ getSecondListFromTuple (_, y) = y
 encode :: FilePath -> FilePath -> IO()
 encode inname outname  = 
     do
-        txt <- readFile inname
+        txt          <- readFile inname
         let f        = freqf txt                                         -- pares (c, f)
         let n        = P.runPut $ P.putWord8 (toEnum . length $ f)       -- numero de caracteres
         let huffm    = constructH $ getHuffFromFile $ f                  -- Árvore
