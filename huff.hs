@@ -249,13 +249,14 @@ main = do
         ["vd", a, b] -> decodeDebug a b
         ["dv", a, b] -> decodeDebug a b
         ["-h"] -> do
-            putStrLn "Usage: ./huff [c|v|d] 'input' 'output'"
+            putStrLn "Usage: ./huff [c|d] 'input' 'output'"
             putStrLn "Examples:\n\t./huff c 'input' 'output' --> compress file\n\t./huff d 'input' 'output' --> decompress file"
             putStrLn "Use 'v' argument for verbose. (as in ./huff cv ...)"
         ["-v"]       -> putStrLn "Huffman Text File compressor/decompressor. Version 1.0\n(c) Marcos Felipe Eipper / 2017 ~ @markx3"
         ["--demo"]   -> do 
             { encodeDebug "huff.hs" "compressed.bin";
              decodeDebug "compressed.bin" "decompressed.hs" }
+        otherwise -> putStrLn "Invalid arguments. Use -h for help."
 
 -------------------------------------
 encodeDecode :: String -> String ---- by LKRaider
