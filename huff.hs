@@ -7,6 +7,7 @@ import Data.List
 import Data.List.Split
 import Data.Word
 import Data.Char
+import Data.Maybe (fromJust)
 import Numeric (showHex, showIntAtBase)
 import qualified Data.Binary.Put as P
 import qualified Data.Binary.Get as G
@@ -92,14 +93,13 @@ easycode :: String -> String
 easycode a = codificar a (constructH $ freqSimb a)
 
 codeToDecWord8 :: Num a => [Char] -> [a]
-codeToDecWord8 input = map bin2dec ( chunksOf 8 input )
+codeToDecWord8 input = map binario ( chunksOf 8 input )
 
 codificar :: String -> Huffman -> String
 codificar a h = codificar' a (serializeC $ h)
         where
-            convertJust (Just x) = x
             codificar' [] s = []
-            codificar' (x:xs) s = convertJust (lookup x s) ++ codificar' xs s
+            codificar' (x:xs) s = fromJust (lookup x s) ++ codificar' xs s
 
 decodificar :: String -> Huffman -> String
 decodificar a h = decodificar' (a ++ " ") h h
@@ -122,7 +122,7 @@ put :: [(Char, Int)] -> P.PutM ()
 put [] = P.flush
 put ((c,f):xs) =
     do 
-        P.putWord8 (I.c2w c) -- I.c2w converte char p/ word
+        P.putWord8 (I.c2w c)     -- I.c2w converte char p/ word
         P.putWord32be (toEnum f) -- toEnum converte de Int p/ Word32
         put xs
 
@@ -180,14 +180,13 @@ encode :: FilePath -> FilePath -> IO()
 encode inname outname  = 
     do
         txt          <- readFile inname
-        let f        = freqf txt                                         -- pares (c, f)
-        let n        = P.runPut $ P.putWord8 (toEnum . length $ f)       -- numero de caracteres
-        let huffm    = constructH $ getHuffFromFile $ f                  -- Árvore
-        let code     = codificar txt huffm                               -- codigo bin
-        let t        = P.runPut $ P.putWord32be (toEnum . length $ code) -- n. chars cod
-        let cbook    = P.runPut (put f)                                  -- codebook
-        let wordlist = codeToDecWord8 $ code                             -- vetor de ints a partir do codigo
-        let bincode  = P.runPut (putCode $ wordlist)                     -- codigo p/ int
+        let f        = freqf txt                                             -- pares (c, f)
+        let n        = P.runPut $ P.putWord8 (toEnum . length $ f)           -- numero de caracteres
+        let huffm    = constructH . getHuffFromFile $ f                      -- Árvore
+        let wordlist = codeToDecWord8 $ codificar txt huffm                  -- vetor de ints a partir do codigo
+        let t        = P.runPut $ P.putWord32be (toEnum . length $ wordlist) -- n. chars cod
+        let cbook    = P.runPut (put f)                                      -- codebook
+        let bincode  = P.runPut (putCode wordlist)                           -- codigo p/ int
 
         L.writeFile outname (L.concat ([n,t,cbook,bincode]))
 
@@ -195,15 +194,15 @@ encodeDebug :: FilePath -> FilePath -> IO()
 encodeDebug inname outname  = 
     do
         txt          <- readFile inname
-        let f        = freqf txt                                         -- pares (c, f)
-        let n        = P.runPut $ P.putWord8 (toEnum . length $ f)       -- numero de caracteres
-        let huffm    = constructH $ getHuffFromFile $ f                  -- árvore
-        let code     = codificar txt huffm                               -- codigo bin
-        let t        = P.runPut $ P.putWord32be (toEnum . length $ code) -- n. chars cod
+        let f        = freqf txt                                             -- pares (c, f)
+        let n        = P.runPut $ P.putWord8 (toEnum . length $ f)           -- numero de caracteres
+        let huffm    = constructH . getHuffFromFile $ f                      -- árvore
+        let wordlist = codeToDecWord8 $ codificar txt huffm       
+        let t        = P.runPut $ P.putWord32be (toEnum . length $ wordlist) -- n. chars cod
         let cbook    = P.runPut (put f)     
-        let wordlist = codeToDecWord8 $ code
-        let bincode  = P.runPut (putCode $ wordlist)                     -- codigo p/ int
+        let bincode  = P.runPut (putCode wordlist)                           -- codigo p/ int
         
+        putStrLn (show wordlist ++ "\n" ++ show (length f) ++ "\n" ++ show (length wordlist) ++ "\n")
         putStrLn (show f ++ "\n")
         putStrLn (show huffm ++ "\n")
 
@@ -271,6 +270,3 @@ encodeDecode input =
 
 --main :: IO()
 --main =  getArgs >>= putStr . encodeDecode . unwords
-
-
-
